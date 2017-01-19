@@ -10,6 +10,7 @@ import Foundation
 import Firebase
 
 class BookDetail: NSObject {
+  var bookKey: String
   var bookLanguage: String
   
   var bookCoverPageUrl: String
@@ -21,6 +22,7 @@ class BookDetail: NSObject {
   var contributors: [[String: String]]
   
   init(book: Book, languages: [Language], contributors: [Contributor], roles: [Role]) {
+    self.bookKey = book.bookKey
     var bookDetailLanguage: String!
     for language in languages {
       if book.bookLanguage == language.languageKey {

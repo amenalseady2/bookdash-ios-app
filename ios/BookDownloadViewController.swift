@@ -13,7 +13,7 @@ import SSZipArchive
 import SwiftyJSON
 
 class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelegate {
-  
+  var bookKey: String!
   var downloadUrl: String!
   var localZipFileDirectory: String!
   var bookFilesDirectory: String!
@@ -52,9 +52,17 @@ class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelega
     
     // Create a local filesystem URL from the file path
     self.getZipFileDirectory()
-    self.localFilePath = self.localZipFileDirectory.appending(self.downloadUrl)
-    self.localFileUrl = URL(fileURLWithPath: self.localFilePath)
     
+    self.localFilePath = self.localZipFileDirectory.appending(self.bookKey)
+    let success = FileManager.default.fileExists(atPath: self.localFilePath) as Bool
+    if success == false {
+      do {
+        try! FileManager.default.createDirectory(atPath: self.localFilePath, withIntermediateDirectories: true, attributes: nil)
+      }
+    }
+    
+    self.localFileUrl = URL(fileURLWithPath: self.localFilePath)
+    self.bookFilesDirectory = self.getBookFilesDirectory(path: self.localFilePath)
     self.downloadZipFile()
   }
   
@@ -71,9 +79,7 @@ class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelega
   }
   
   func getBookFilesDirectory(path: String) -> String {
-    let fileNameWithoutExtension = self.downloadUrl?.fileName()
-    let localBookFilesDirectory = path.appending(fileNameWithoutExtension!)
-    
+    let localBookFilesDirectory = path.appending(self.bookKey!)
     return localBookFilesDirectory
   }
   
@@ -84,7 +90,7 @@ class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelega
         print(error!)
       } else {
         // Unzip the downloaded file in the local directory
-        SSZipArchive.unzipFile(atPath: self.localFilePath, toDestination: self.localZipFileDirectory, delegate: self)
+        SSZipArchive.unzipFile(atPath: self.localFilePath, toDestination: self.bookFilesDirectory, delegate: self)
         self.readFile()
       }
     }
@@ -92,24 +98,28 @@ class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelega
   }
   
   func readFile() {
+    var localDirectoryListing: String!
     do {
-      let bookDirectoryListing = try FileManager.default.contentsOfDirectory(atPath: self.localZipFileDirectory)
-      print(bookDirectoryListing)
-      let fileNameWithoutExtension = self.downloadUrl?.fileName()
-      
+      let topDirectoryListing = try FileManager.default.contentsOfDirectory(atPath: self.bookFilesDirectory)
+      localDirectoryListing = self.bookFilesDirectory.appending("/" + topDirectoryListing.last!)
+    } catch {
+      print("Error reading book directory")
+    }
+    
+    do {
+      let bookDirectoryListing = try FileManager.default.contentsOfDirectory(atPath: localDirectoryListing)
       do {
-        let bookJSON = try FileManager.default.contents(atPath: self.localZipFileDirectory.appending(fileNameWithoutExtension! + "/bookdetails.json"))
+        let bookJSON = try FileManager.default.contents(atPath: localDirectoryListing.appending("/bookdetails.json"))
         let json = JSON(data: bookJSON!)
-        
         var pages = [UIImage]()
         for item in json["pages"].arrayValue {
           if (item["pageNumber"].intValue == 0) {
-            let coverPageImageFile = self.localZipFileDirectory.appending(fileNameWithoutExtension! + item["image"].stringValue)
+            let coverPageImageFile = localDirectoryListing.appending(item["image"].stringValue)
             if let coverPageImage = UIImage(contentsOfFile: coverPageImageFile) {
               self.dictionary["cover"] = coverPageImage as AnyObject?
             }
           } else {
-            let pageImageFile = self.localZipFileDirectory.appending(fileNameWithoutExtension! + item["image"].stringValue)
+            let pageImageFile = localDirectoryListing.appending(item["image"].stringValue)
             if let pageImage = UIImage(contentsOfFile: pageImageFile) {
               pages.append(pageImage)
             }
@@ -117,7 +127,6 @@ class BookDownloadViewController: UICollectionViewController, SSZipArchiveDelega
         }
         self.dictionary["pages"] = pages as AnyObject?
         self.bookDownload = BookDownload(dictionary: self.dictionary)
-        
       } catch {
         print("Error reading JSON")
       }

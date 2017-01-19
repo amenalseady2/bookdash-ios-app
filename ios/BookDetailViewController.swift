@@ -18,6 +18,7 @@ class BookDetailViewController: UIViewController {
   @IBOutlet var bookDescriptionLabel: UILabel!
 
   var bookDetail: [String: AnyObject]!
+  var bookKey: String!
   var downloadUrl: String!
   var bookTitle: String!
   var coverPageUrl: String!
@@ -26,6 +27,7 @@ class BookDetailViewController: UIViewController {
 
   override func viewDidLoad() {
     super.viewDidLoad()
+    //self.assignBackground()
     self.shouldAutorotate
     
     self.loadBookData(bookDetail: bookDetail)
@@ -33,16 +35,6 @@ class BookDetailViewController: UIViewController {
   
   override var shouldAutorotate: Bool {
     return false
-  }
-  
-  override func viewWillAppear(_ animated: Bool) {
-    super.viewWillAppear(true)
-    //self.assignBackground()
-    //self.forcePortrait()
-  }
-  
-  override func viewWillDisappear(_ animated: Bool) {
-    super.viewWillDisappear(true)
   }
 
   func assignBackground() {
@@ -57,6 +49,7 @@ class BookDetailViewController: UIViewController {
   }
   
   func loadBookData(bookDetail: [String: AnyObject]) {
+    self.bookKey = bookDetail["bookKey"] as! String!
     let bookCoverPageUrl = bookDetail["bookCoverPageUrl"] as! String
     self.coverPageUrl = storageUrl.appending(bookCoverPageUrl)
     self.loadBookCover(url: self.coverPageUrl)
@@ -100,31 +93,10 @@ class BookDetailViewController: UIViewController {
   override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
     if segue.identifier == "BookDownload" {
       let bookDownloadViewController = segue.destination as! BookDownloadViewController
+      bookDownloadViewController.bookKey = self.bookKey as String
       bookDownloadViewController.downloadUrl = self.downloadUrl as String
     }
   }
-  
-//  func forcePortrait() {
-//    let width = UIScreen.main.bounds.size.width
-//    let height = UIScreen.main.bounds.size.height
-//    let isLandscape = width > height
-//    if isLandscape{
-//      var device = UIDevice.current
-//      let number = NSNumber(value: Int32(UIInterfaceOrientation.portrait.rawValue))
-//      device.setValue(number, forKey: "orientation")
-//    }
-//  }
-//  
-//  func forceLandScape() {
-//    let width = UIScreen.main.bounds.size.width
-//    let height = UIScreen.main.bounds.size.height
-//    let isLandscape = width < height
-//    if isLandscape{
-//      var device = UIDevice.current
-//      let number = NSNumber(value: UIInterfaceOrientation.landscapeRight.rawValue)
-//      device.setValue(number, forKey: "orientation")
-//    }
-//  }
 }
 
 

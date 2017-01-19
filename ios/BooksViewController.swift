@@ -139,6 +139,11 @@ class BooksViewController: UICollectionViewController {
     })
   }
   
+  func createLanguages(snapshot: FIRDataSnapshot) {}
+  func createBooks(snapshot: FIRDataSnapshot) {}
+  func createRoles(snapshot: FIRDataSnapshot) {}
+  func createContributors(snapshot: FIRDataSnapshot) {}
+  
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
   }
@@ -203,6 +208,8 @@ class BooksViewController: UICollectionViewController {
   }
   
   func showBookDetail(book: Book) -> [String: Any] {
+    self.bookDetail["bookKey"] = book.bookKey
+    
     var bookLanguage: String!
     for language in self.languages {
       if book.bookLanguage == language.languageKey {
