@@ -1,5 +1,3 @@
-# bookdash-ios-app
-<<<<<<< HEAD
-=======
-iOS version of the book dash app
->>>>>>> 11bc64be513854e2b7c12c9625730d5292a01c3c
+# Book Dash iOS app
+
+This is work towards an iOS version of the open-source Book Dash app. It is currently unmaintained.
